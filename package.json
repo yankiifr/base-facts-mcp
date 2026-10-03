@@ -1,0 +1,45 @@
+{
+  "name": "base-facts-mcp",
+  "version": "0.1.1",
+  "description": "MCP server for AI agents trading on Base: token verdict, token facts, wallet, gas, transaction and Basename lookups, paid per call in USDC over x402",
+  "type": "module",
+  "bin": {
+    "base-facts-mcp": "index.mjs"
+  },
+  "files": [
+    "index.mjs",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node test.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "mcp",
+    "x402",
+    "base",
+    "usdc",
+    "onchain",
+    "token",
+    "agent"
+  ],
+  "homepage": "https://base-facts.yankii.fr",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yankiifr/base-facts-mcp.git"
+  },
+  "bugs": {
+    "url": "https://github.com/yankiifr/base-facts-mcp/issues"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.32.0",
+    "@x402/evm": "^2.28.0",
+    "@x402/fetch": "^2.28.0",
+    "viem": "^2.57.2",
+    "zod": "^3.25.76"
+  }
+}
