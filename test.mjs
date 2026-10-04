@@ -17,7 +17,7 @@ const resultText = (r) => r.content[0].text;
 // Without a wallet: tools are listed, paid tools explain how to configure one
 let client = await start({ X402_PRIVATE_KEY: "", X402_PAYER_FILE: "" });
 const names = (await client.listTools()).tools.map((t) => t.name).sort();
-assert.deepEqual(names, ["base_facts_budget", "base_gas", "base_token_facts", "base_token_verdict", "base_tx_summary", "base_wallet_snapshot", "basename_resolve"]);
+assert.deepEqual(names, ["base_facts_budget", "base_gas", "base_token_facts", "base_token_sellcheck", "base_token_verdict", "base_tx_summary", "base_wallet_snapshot", "basename_resolve"]);
 let r = await client.callTool({ name: "base_gas", arguments: {} });
 assert.equal(r.isError, true);
 assert.match(resultText(r), /No wallet configured/);

@@ -107,6 +107,12 @@ server.registerTool("base_token_verdict", {
   description: "Before buying a token on Base: risk level, score and flags (upgradeable proxy, mint, pause, blacklist, owner not renounced, DEX liquidity on Uniswap v2/v3 and Aerodrome), each with the on-chain fact behind it. Facts and heuristics, not financial advice. Costs $0.01 in USDC.",
   inputSchema: { token: address.describe("Token contract address on Base") },
 }, ({ token }) => callRoute("POST", "/v1/verdict", { token }));
+server.registerTool("base_token_sellcheck", {
+  title: "Base token sell check ($0.005)",
+  description: "Honeypot and tax check for a Base token: simulates a small buy and an immediate sell on its deepest pool (Uniswap v2/v3/v4, Aerodrome) inside eth_call. Returns buy tax, sell tax, round-trip loss and whether the sell reverted. Paid with x402 from your payer wallet.",
+  inputSchema: { token: address.describe("Token contract address on Base") },
+}, ({ token }) => callRoute("POST", "/v1/sellcheck", { token }));
+
 
 server.registerTool("base_token_facts", {
   title: "Base token facts ($0.005)",

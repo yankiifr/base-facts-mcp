@@ -7,6 +7,7 @@ An MCP server for AI agents that trade or move money on Base. Each tool calls
 | Tool | Price | Answers |
 |---|---|---|
 | `base_token_verdict` | $0.01 | Before buying a token: risk level, score and flags (proxy, mint, pause, blacklist, owner, DEX liquidity), each with its on-chain fact |
+| `base_token_sellcheck` | $0.005 | Honeypot and tax check: simulates a small buy and immediate sell on the deepest pool, returns buy/sell tax, round-trip loss |
 | `base_token_facts` | $0.005 | ERC20 metadata, owner, proxy and implementation, admin selectors in the bytecode |
 | `base_wallet_snapshot` | $0.002 | ETH and USDC balances, nonce, contract or not |
 | `base_gas` | $0.001 | Base fee, priority fee, gas price |
@@ -44,7 +45,7 @@ uses `~/.base-facts-mcp/payer.json` when it exists.
 
 Every setting also exists as an option, for hosts that pass only `command` and `args` (Preste):
 `--payer-file <path>`, `--max-price <usd>`, `--budget <usd>`, `--api <url>`. See
-[`preste/`](preste/) for the Preste config and skill.
+`integrations/preste/` for the Preste config and skill.
 
 ## Spending safety
 
