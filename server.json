@@ -8,12 +8,12 @@
     "source": "github"
   },
   "websiteUrl": "https://base-facts.yankii.fr",
-  "version": "0.2.1",
+  "version": "0.2.3",
   "packages": [
     {
       "registryType": "npm",
       "identifier": "base-facts-mcp",
-      "version": "0.2.1",
+      "version": "0.2.3",
       "transport": {
         "type": "stdio"
       },

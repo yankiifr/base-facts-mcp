@@ -112,6 +112,11 @@ server.registerTool("base_token_sellcheck", {
   description: "Honeypot and tax check for a Base token: simulates a small buy and an immediate sell on its deepest pool (Uniswap v2/v3/v4, Aerodrome) inside eth_call. Returns buy tax, sell tax, round-trip loss and whether the sell reverted. Paid with x402 from your payer wallet.",
   inputSchema: { token: address.describe("Token contract address on Base") },
 }, ({ token }) => callRoute("POST", "/v1/sellcheck", { token }));
+server.registerTool("base_token_sellcheck_size", {
+  title: "Base token sell check at your trade size ($0.01)",
+  description: "The sell check at YOUR size: simulates a buy of amountEth (0.001 to 10 ETH) and an immediate sell inside eth_call. Returns buy tax, sell tax, round-trip loss, the buy price impact against a small trade (buyPriceImpactPct) and a depthWarning when the size is larger than the pool can absorb. Costs $0.01.",
+  inputSchema: { token: address.describe("Token contract address on Base"), amountEth: z.string().regex(/^\d{1,3}(\.\d{1,18})?$/, "decimal string such as 0.5").describe("Trade size in ETH, 0.001 to 10") },
+}, ({ token, amountEth }) => callRoute("POST", "/v1/sellcheck/size", { token, amountEth }));
 
 
 server.registerTool("base_token_facts", {

@@ -8,6 +8,7 @@ An MCP server for AI agents that trade or move money on Base. Each tool calls
 |---|---|---|
 | `base_token_verdict` | $0.01 | Before buying a token: risk level, score and flags (proxy, mint, pause, blacklist, owner, DEX liquidity), each with its on-chain fact |
 | `base_token_sellcheck` | $0.005 | Honeypot and tax check: simulates a small buy and immediate sell on the deepest pool, returns buy/sell tax, round-trip loss |
+| `base_token_sellcheck_size` | $0.01 | The same check at your trade size (`amountEth`, 0.001 to 10 ETH): tax, round-trip loss, buy price impact and a depth warning when the size is larger than the pool can absorb |
 | `base_token_facts` | $0.005 | ERC20 metadata, owner, proxy and implementation, admin selectors in the bytecode |
 | `base_wallet_snapshot` | $0.002 | ETH and USDC balances, nonce, contract or not |
 | `base_gas` | $0.001 | Base fee, priority fee, gas price |

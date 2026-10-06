@@ -1,6 +1,6 @@
 {
   "name": "base-facts-mcp",
-  "version": "0.2.1",
+  "version": "0.2.3",
   "mcpName": "io.github.yankiifr/base-facts-mcp",
   "description": "MCP server for AI agents trading on Base: token verdict, token facts, wallet, gas, transaction and Basename lookups, paid per call in USDC over x402",
   "type": "module",
