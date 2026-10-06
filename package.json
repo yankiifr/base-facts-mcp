@@ -1,6 +1,7 @@
 {
   "name": "base-facts-mcp",
-  "version": "0.2.0",
+  "version": "0.2.1",
+  "mcpName": "io.github.yankiifr/base-facts-mcp",
   "description": "MCP server for AI agents trading on Base: token verdict, token facts, wallet, gas, transaction and Basename lookups, paid per call in USDC over x402",
   "type": "module",
   "bin": {
@@ -18,13 +19,18 @@
     "node": ">=20"
   },
   "keywords": [
-    "mcp",
-    "x402",
+    "agent",
     "base",
-    "usdc",
+    "crypto",
+    "honeypot",
+    "mcp",
+    "mcp-server",
     "onchain",
+    "security",
     "token",
-    "agent"
+    "uniswap",
+    "usdc",
+    "x402"
   ],
   "homepage": "https://base-facts.yankii.fr",
   "repository": {

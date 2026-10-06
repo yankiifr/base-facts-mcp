@@ -1,0 +1,36 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.yankiifr/base-facts-mcp",
+  "title": "Base Token Facts",
+  "description": "Base token checks for agents: simulated buy and sell, taxes, honeypots. Pay per call in USDC (x402).",
+  "repository": {
+    "url": "https://github.com/yankiifr/base-facts-mcp",
+    "source": "github"
+  },
+  "websiteUrl": "https://base-facts.yankii.fr",
+  "version": "0.2.1",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "base-facts-mcp",
+      "version": "0.2.1",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "X402_PRIVATE_KEY",
+          "description": "Private key of a small x402 payer wallet holding a little USDC on Base (pays $0.002-$0.01 per call). Alternative: X402_PAYER_FILE.",
+          "isRequired": false,
+          "isSecret": true
+        },
+        {
+          "name": "SESSION_BUDGET_USD",
+          "description": "Stop paying once this much was spent in the session (default 1).",
+          "isRequired": false,
+          "default": "1"
+        }
+      ]
+    }
+  ]
+}
