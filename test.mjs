@@ -44,5 +44,13 @@ r = await client.callTool({ name: "base_gas", arguments: {} });
 assert.equal(r.isError, true);
 console.log("budget:", resultText(r).replace(/\s+/g, " ").slice(0, 160));
 await client.close();
+
+// Unexpected recipient: the challenge asks to pay another address, so nothing is signed
+client = await start({}, ["--payer-file", keyFile, "--pay-to", "0x0000000000000000000000000000000000000001"]);
+r = await client.callTool({ name: "base_gas", arguments: {} });
+assert.equal(r.isError, true);
+assert.match(resultText(r), /filtered out by policies/);
+console.log("recipient pin: ok");
+await client.close();
 fs.rmSync(keyFile);
 console.log("all checks passed");

@@ -10,6 +10,8 @@
 //   --max-price / MAX_PRICE_USD       refuse any single call above this price (default 0.02)
 //   --budget / SESSION_BUDGET_USD     stop paying once this much was spent this session (default 1)
 //   --api / BASE_FACTS_URL            API base URL (default https://base-facts.yankii.fr)
+//   --pay-to / BASE_FACTS_PAY_TO      the only address allowed to receive payments; defaults to the
+//                                     official one for the default API, and is REQUIRED for any other API
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -27,6 +29,10 @@ function option(name) {
 
 const API = (option("api") || process.env.BASE_FACTS_URL || "https://base-facts.yankii.fr").replace(/\/$/, "");
 const NETWORK = "eip155:8453";
+const USDC_BASE = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
+const OFFICIAL_API = "https://base-facts.yankii.fr";
+const OFFICIAL_PAY_TO = "0x40661D56c2Bf416c5946A8b21098eaF8D33459A2";
+const PAY_TO = (option("pay-to") || process.env.BASE_FACTS_PAY_TO || (API === OFFICIAL_API ? OFFICIAL_PAY_TO : "")).toLowerCase();
 const MAX_PRICE_USD = Number(option("max-price") || process.env.MAX_PRICE_USD || 0.02);
 const SESSION_BUDGET_USD = Number(option("budget") || process.env.SESSION_BUDGET_USD || 1);
 const DEFAULT_PAYER_FILE = path.join(os.homedir(), ".base-facts-mcp", "payer.json");
@@ -50,9 +56,17 @@ if (account) {
   const client = new x402Client()
     .register(NETWORK, new ExactEvmScheme(account))
     .setSpendControls({ maxAmountPerPayment: MAX_PRICE_USD })
-    // Only Base USDC payments that still fit in the session budget
+    // Only Base USDC, to the expected recipient, that still fits in the session budget.
+    // With no known recipient (custom API and no --pay-to) nothing is signed.
     .registerPolicy((_version, reqs) =>
-      reqs.filter((r) => r.network === NETWORK && spentAtomic + BigInt(r.amount) <= toAtomic(SESSION_BUDGET_USD)),
+      reqs.filter(
+        (r) =>
+          r.network === NETWORK &&
+          String(r.asset).toLowerCase() === USDC_BASE.toLowerCase() &&
+          PAY_TO !== "" &&
+          String(r.payTo).toLowerCase() === PAY_TO &&
+          spentAtomic + BigInt(r.amount) <= toAtomic(SESSION_BUDGET_USD),
+      ),
     );
   client.onAfterPaymentCreation(async ({ selectedRequirements }) => {
     signedAtomic = BigInt(selectedRequirements.amount);

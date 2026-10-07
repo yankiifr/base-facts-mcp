@@ -52,6 +52,7 @@ Every setting also exists as an option, for hosts that pass only `command` and `
 
 - `MAX_PRICE_USD` (default 0.02): the client refuses to sign any single payment above it.
 - `SESSION_BUDGET_USD` (default 1): once reached, the client stops signing until restarted.
+- `BASE_FACTS_PAY_TO` (default: the official address when using the default API): the only recipient the client will sign for. Required with a custom `BASE_FACTS_URL`; without it nothing is signed. The client also signs only Base USDC (`0x8335…2913`).
 - Only USDC on Base (`eip155:8453`) is ever signed.
 - A refused or failed call (4xx/5xx) cancels the settlement: you are not charged, and the tool says
   `charged: false` with the reason (for example not enough USDC).
