@@ -7,7 +7,7 @@
 //   --payer-file / X402_PAYER_FILE    JSON file { "privateKey": "0x..." } of a wallet holding a little
 //                                     USDC on Base (no ETH needed); default ~/.base-facts-mcp/payer.json
 //   X402_PRIVATE_KEY                  the key itself, instead of a file
-//   --max-price / MAX_PRICE_USD       refuse any single call above this price (default 0.02)
+//   --max-price / MAX_PRICE_USD       refuse any single call above this price (default 0.03, so the batch tool can run)
 //   --budget / SESSION_BUDGET_USD     stop paying once this much was spent this session (default 1)
 //   --api / BASE_FACTS_URL            API base URL (default https://base-facts.yankii.fr)
 //   --pay-to / BASE_FACTS_PAY_TO      the only address allowed to receive payments; defaults to the
@@ -33,7 +33,7 @@ const USDC_BASE = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
 const OFFICIAL_API = "https://base-facts.yankii.fr";
 const OFFICIAL_PAY_TO = "0x40661D56c2Bf416c5946A8b21098eaF8D33459A2";
 const PAY_TO = (option("pay-to") || process.env.BASE_FACTS_PAY_TO || (API === OFFICIAL_API ? OFFICIAL_PAY_TO : "")).toLowerCase();
-const MAX_PRICE_USD = Number(option("max-price") || process.env.MAX_PRICE_USD || 0.02);
+const MAX_PRICE_USD = Number(option("max-price") || process.env.MAX_PRICE_USD || 0.03);
 const SESSION_BUDGET_USD = Number(option("budget") || process.env.SESSION_BUDGET_USD || 1);
 const DEFAULT_PAYER_FILE = path.join(os.homedir(), ".base-facts-mcp", "payer.json");
 const toAtomic = (usd) => BigInt(Math.round(usd * 1e6)); // USDC has 6 decimals
@@ -131,6 +131,11 @@ server.registerTool("base_token_sellcheck_size", {
   description: "The sell check at YOUR size: simulates a buy of amountEth (0.001 to 10 ETH) and an immediate sell inside eth_call. Returns buy tax, sell tax, round-trip loss, the buy price impact against a small trade (buyPriceImpactPct) and a depthWarning when the size is larger than the pool can absorb. Costs $0.01.",
   inputSchema: { token: address.describe("Token contract address on Base"), amountEth: z.string().regex(/^\d{1,3}(\.\d{1,18})?$/, "decimal string such as 0.5").describe("Trade size in ETH, 0.001 to 10") },
 }, ({ token, amountEth }) => callRoute("POST", "/v1/sellcheck/size", { token, amountEth }));
+server.registerTool("base_token_batch_screen", {
+  title: "Base token batch screen, up to 10 tokens ($0.03)",
+  description: "Screen many Base tokens in ONE paid call: for up to 10 addresses it simulates a small buy and an immediate sell inside eth_call (no trade is sent) and returns, per token, buy tax, sell tax, round-trip loss, flags and a plain summary. A token that cannot be simulated is returned as not_simulated with the reason; addresses that are not contracts are listed in skipped. $0.03 for the whole list (a single check is $0.005). Not charged if the list is invalid or the RPC fails (retry). Facts, not advice.",
+  inputSchema: { tokens: z.array(address).min(1).max(10).describe("1 to 10 distinct token contract addresses on Base") },
+}, ({ tokens }) => callRoute("POST", "/v1/batch", { tokens }));
 
 
 server.registerTool("base_token_facts", {
