@@ -40,6 +40,10 @@ const toAtomic = (usd) => BigInt(Math.round(usd * 1e6)); // USDC has 6 decimals
 
 let spentAtomic = 0n;
 let signedAtomic = 0n; // amount signed for the call in progress (paid calls run one at a time)
+// Highest price each route may charge (the published price). A route that asks for more is refused, so the default per-call
+// cap (0.03, needed by the batch tool) cannot be used by a cheap tool. Routes not listed fall back to MAX_PRICE_USD.
+const TOOL_MAX_USD = { "/v1/verdict": 0.01, "/v1/sellcheck": 0.005, "/v1/sellcheck/size": 0.01, "/v1/facts": 0.005, "/v1/wallet": 0.002, "/v1/gas": 0.001, "/v1/tx": 0.003, "/v1/basename": 0.002, "/v1/batch": 0.03 };
+let currentMaxAtomic = toAtomic(MAX_PRICE_USD);
 let queue = Promise.resolve();
 
 function loadAccount() {
@@ -65,6 +69,7 @@ if (account) {
           String(r.asset).toLowerCase() === USDC_BASE.toLowerCase() &&
           PAY_TO !== "" &&
           String(r.payTo).toLowerCase() === PAY_TO &&
+          BigInt(r.amount) <= currentMaxAtomic &&
           spentAtomic + BigInt(r.amount) <= toAtomic(SESSION_BUDGET_USD),
       ),
     );
@@ -86,6 +91,7 @@ function callRoute(method, path, body) {
 
 async function paidCall(method, path, body) {
   signedAtomic = 0n;
+  currentMaxAtomic = toAtomic(Math.min(MAX_PRICE_USD, TOOL_MAX_USD[path] ?? MAX_PRICE_USD));
   if (!payFetch) {
     return text(`No wallet configured. Pass --payer-file, set X402_PAYER_FILE or X402_PRIVATE_KEY, or create ${DEFAULT_PAYER_FILE}: a wallet holding a little USDC on Base.`, true);
   }
@@ -97,7 +103,13 @@ async function paidCall(method, path, body) {
       body: body ? JSON.stringify(body) : undefined,
     });
   } catch (err) {
-    return text(`Payment or network error: ${err.message}. Spent this session: $${Number(spentAtomic) / 1e6}.`, true);
+    // The payment may have settled even though the answer was lost: count what was signed against the budget (it can only
+    // make the budget stricter) and say so, so the caller checks the wallet instead of paying again blindly.
+    if (signedAtomic > 0n) {
+      spentAtomic += signedAtomic;
+      return text(`Payment or network error after signing ${Number(signedAtomic) / 1e6}: ${err.message}. The payment MAY have settled; it is counted against the session budget (spent or reserved: ${Number(spentAtomic) / 1e6}). Check the wallet before retrying.`, true);
+    }
+    return text(`Payment or network error: ${err.message}. Spent this session: ${Number(spentAtomic) / 1e6}.`, true);
   }
   const settlement = res.headers.get("PAYMENT-RESPONSE");
   const paid = settlement ? JSON.parse(Buffer.from(settlement, "base64").toString("utf8")) : null;

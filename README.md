@@ -51,6 +51,8 @@ Every setting also exists as an option, for hosts that pass only `command` and `
 
 ## Spending safety
 
+- Each tool also has its own ceiling (its published price: gas 0.001, batch 0.03, and so on): a route that asks for more than its published price is refused, whatever `MAX_PRICE_USD` says.
+- If the answer to a paid call is lost after the payment was signed, the amount is counted against the session budget (the payment may have settled) and the tool says so: check the wallet before retrying.
 - `MAX_PRICE_USD` (default 0.03): the client refuses to sign any single payment above it.
 - `SESSION_BUDGET_USD` (default 1): once reached, the client stops signing until restarted.
 - `BASE_FACTS_PAY_TO` (default: the official address when using the default API): the only recipient the client will sign for. Required with a custom `BASE_FACTS_URL`; without it nothing is signed. The client also signs only Base USDC (`0x8335…2913`).

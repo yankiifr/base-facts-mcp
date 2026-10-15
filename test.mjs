@@ -52,5 +52,41 @@ assert.equal(r.isError, true);
 assert.match(resultText(r), /filtered out by policies/);
 console.log("recipient pin: ok");
 await client.close();
+
+// Lost answer after signing (Codex review 2026-10-15) and per-tool price cap, against a local mock API (no real payment possible)
+import http from "node:http";
+const PAYTO = "0x0000000000000000000000000000000000000001", USDC_BASE = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913";
+let askAtomic = "1000", dropAfterPayment = true;
+const mock = http.createServer((req, res) => {
+  const paid = Object.keys(req.headers).some((h) => h.startsWith("payment") || h === "x-payment");
+  if (!paid) {
+    const challenge = { x402Version: 2, error: "Payment required", resource: { url: "http://mock" + req.url, description: "mock", mimeType: "application/json" },
+      accepts: [{ scheme: "exact", network: "eip155:8453", asset: USDC_BASE, amount: askAtomic, payTo: PAYTO, maxTimeoutSeconds: 300, extra: { name: "USD Coin", version: "2" } }] };
+    res.writeHead(402, { "PAYMENT-REQUIRED": Buffer.from(JSON.stringify(challenge)).toString("base64"), "content-type": "application/json" });
+    return res.end("{}");
+  }
+  if (dropAfterPayment) return req.socket.destroy(); // the payment was sent, the answer never comes back
+  res.writeHead(200, { "content-type": "application/json" }); res.end("{}");
+});
+await new Promise((r) => mock.listen(0, "127.0.0.1", r));
+const mockUrl = "http://127.0.0.1:" + mock.address().port;
+client = await start({}, ["--payer-file", keyFile, "--api", mockUrl, "--pay-to", PAYTO]);
+r = await client.callTool({ name: "base_gas", arguments: {} });
+assert.equal(r.isError, true);
+assert.match(resultText(r), /MAY have settled/, "a lost answer after signing is reported as possibly settled");
+r = await client.callTool({ name: "base_facts_budget", arguments: {} });
+assert.equal(JSON.parse(resultText(r)).spentUsd, 0.001, "the signed amount is counted against the budget even though the answer was lost");
+await client.close();
+console.log("lost answer: ok");
+askAtomic = "30000"; // base_gas is published at 0.001: a 0.03 ask must not be signed even though the default cap is 0.03
+client = await start({}, ["--payer-file", keyFile, "--api", mockUrl, "--pay-to", PAYTO]);
+r = await client.callTool({ name: "base_gas", arguments: {} });
+assert.equal(r.isError, true);
+assert.match(resultText(r), /filtered out by policies/, "per-tool cap: gas cannot be charged 0.03");
+r = await client.callTool({ name: "base_facts_budget", arguments: {} });
+assert.equal(JSON.parse(resultText(r)).spentUsd, 0);
+await client.close();
+console.log("per-tool cap: ok");
+mock.close();
 fs.rmSync(keyFile);
 console.log("all checks passed");
